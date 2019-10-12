@@ -186,4 +186,11 @@ class Segnet(object):
         self.build_decoder()
 
         self.model = Model(inputs=inputs, outputs=outputs, name="SegNet")
-        
+
+    def train_generator(self, gen_train, steps_per_epoch, epochs, valid_gen = None, valid_steps = None,
+                                    weights_path = None, initial_epoch = 0):
+
+        # TODO - add callbacks model checkpoint
+        self.model.fit_generator(gen_train, steps_per_epoch = steps_per_epoch, epochs = epochs,
+                                        validation_data = valid_gen, validation_steps = valid_steps,
+                                            initial_epoch = initial_epoch)
