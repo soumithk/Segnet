@@ -55,7 +55,7 @@ class Segnet(object):
         self.conv_1 = Activation("relu")(conv_1)
         conv_2 = Convolution2D(64, self.kernel, padding="same")(self.conv_1)
         conv_2 = BatchNormalization()(conv_2)
-        self.conv_2 = Activation("relu")(self.conv_2)
+        self.conv_2 = Activation("relu")(conv_2)
 
         self.pool_1, self.mask_1 = MaxPoolingWithArgmax2D(self.pool_size)(self.conv_2)
 
@@ -115,11 +115,11 @@ class Segnet(object):
 
         print("Building decoder")
 
-        if not decoder_built :
+        if not self.encoder_built :
             print("Failed. Encoder not built")
             return
 
-        self.unpool_1 = MaxUnpooling2D(pool_size)([self.pool_5,self. mask_5])
+        self.unpool_1 = MaxUnpooling2D(self.pool_size)([self.pool_5,self. mask_5])
 
         conv_14 = Convolution2D(512, self.kernel, padding="same")(self.unpool_1)
         conv_14 = BatchNormalization()(conv_14)
@@ -131,7 +131,7 @@ class Segnet(object):
         conv_16 = BatchNormalization()(conv_16)
         self.conv_16 = Activation("relu")(conv_16)
 
-        self.unpool_2 = MaxUnpooling2D(pool_size)([self.conv_16, self.mask_4])
+        self.unpool_2 = MaxUnpooling2D(self.pool_size)([self.conv_16, self.mask_4])
 
         conv_17 = Convolution2D(512, self.kernel, padding="same")(self.unpool_2)
         conv_17 = BatchNormalization()(conv_17)
@@ -143,7 +143,7 @@ class Segnet(object):
         conv_19 = BatchNormalization()(conv_19)
         self.conv_19 = Activation("relu")(conv_19)
 
-        self.unpool_3 = MaxUnpooling2D(pool_size)([self.conv_19, self.mask_3])
+        self.unpool_3 = MaxUnpooling2D(self.pool_size)([self.conv_19, self.mask_3])
 
         conv_20 = Convolution2D(256, self.kernel, padding="same")(self.unpool_3)
         conv_20 = BatchNormalization()(conv_20)
@@ -155,7 +155,7 @@ class Segnet(object):
         conv_22 = BatchNormalization()(conv_22)
         self.conv_22 = Activation("relu")(conv_22)
 
-        self.unpool_4 = MaxUnpooling2D(pool_size)([self.conv_22, self.mask_2])
+        self.unpool_4 = MaxUnpooling2D(self.pool_size)([self.conv_22, self.mask_2])
 
         conv_23 = Convolution2D(128, self.kernel, padding="same")(self.unpool_4)
         conv_23 = BatchNormalization()(conv_23)
@@ -164,7 +164,7 @@ class Segnet(object):
         conv_24 = BatchNormalization()(conv_24)
         self.conv_24 = Activation("relu")(conv_24)
 
-        self.unpool_5 = MaxUnpooling2D(pool_size)([self.conv_24, self.mask_1])
+        self.unpool_5 = MaxUnpooling2D(self.pool_size)([self.conv_24, self.mask_1])
 
         conv_25 = Convolution2D(64, self.kernel, padding="same")(self.unpool_5)
         conv_25 = BatchNormalization()(conv_25)
@@ -179,13 +179,15 @@ class Segnet(object):
         self.outputs = Activation(self.output_mode)(self.conv_26)
         print("Done.")
 
-    def build_model(self):
+    def build_model(self, print_summary = True):
 
         # INCOMPLETE
         self.build_encoder()
         self.build_decoder()
 
-        self.model = Model(inputs=inputs, outputs=outputs, name="SegNet")
+        self.model = Model(inputs = self.inputs, outputs = self.outputs, name = "SegNet")
+        if print_summary :
+            print(self.model.summary())
 
     def train_generator(self, gen_train, steps_per_epoch, epochs, valid_gen = None, valid_steps = None,
                                     weights_path = None, initial_epoch = 0):
