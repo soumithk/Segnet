@@ -5,7 +5,7 @@ import data as dp
 
 
 if __name__ == '__main__':
-    path = './data_semantics/training'
+    path = '../data_semantics/training'
     dat = dp.Data(path,10)
     dat.run()
     img,mask = dat.next()
