@@ -1,3 +1,4 @@
+# from keras import losses
 from keras.models import Model
 from keras.layers import Input
 from keras.layers.core import Activation, Reshape
@@ -27,7 +28,7 @@ from layers import MaxPoolingWithArgmax2D, MaxUnpooling2D
 class Segnet(object):
 
     def __init__(self, input_shape, n_classes, kernel = (3, 3), pool_size=(2, 2),
-        output_mode="softmax"):
+        output_mode="sigmoid"):
 
         self.input_shape = input_shape
         self.n_classes = n_classes
@@ -121,6 +122,7 @@ class Segnet(object):
 
         conv_11 = Convolution2D(self.n_classes - 1, self.kernel, padding="same")(self.conv_10)
         self.conv_11 = BatchNormalization()(conv_11)
+        # self.conv_11 = Reshape((-1, self.input_shape[0], self.input_shape[1],self.n_classes-1))(conv_11)
         self.outputs = Activation(self.output_mode)(self.conv_11)
         print("Done.")
 
@@ -134,6 +136,9 @@ class Segnet(object):
 
         if print_summary :
             print(self.model.summary())
+
+    def compile(self,optimizer, loss, metrics):
+        self.model.compile(optimizer= optimizer,loss= loss, metrics = metrics)
 
     def train_generator(self, gen_train, steps_per_epoch, epochs, valid_gen = None, valid_steps = None,
                                     weights_path = None, initial_epoch = 0):
