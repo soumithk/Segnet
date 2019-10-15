@@ -126,24 +126,23 @@ class Segnet(object):
         self.outputs = Activation(self.output_mode)(self.conv_11)
         print("Done.")
 
-    def build_model(self, print_summary = True):
+    def build_model(self, optimizer, loss, metrics, print_summary = True):
 
         # INCOMPLETE
         self.build_encoder()
         self.build_decoder()
 
         self.model = Model(inputs = self.inputs, outputs = self.outputs, name = "SegNet")
+        self.model.compile(optimizer= optimizer,loss= loss, metrics = metrics)
 
         if print_summary :
             print(self.model.summary())
 
-    def compile(self,optimizer, loss, metrics):
-        self.model.compile(optimizer= optimizer,loss= loss, metrics = metrics)
 
-    def train_generator(self, gen_train, steps_per_epoch, epochs, valid_gen = None, valid_steps = None,
+    def train_generator(self, gen_train, steps_per_epoch, epochs, save_path, valid_gen = None, valid_steps = None,
                                     weights_path = None, initial_epoch = 0):
 
-        # TODO - add callbacks model checkpoint
+        checkpoint = ModelCheckpoint(filepath, period = 1)
         self.model.fit_generator(gen_train, steps_per_epoch = steps_per_epoch, epochs = epochs,
                                         validation_data = valid_gen, validation_steps = valid_steps,
-                                            initial_epoch = initial_epoch)
+                                            initial_epoch = initial_epoch, callbacks = [checkpoint])
