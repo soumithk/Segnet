@@ -30,7 +30,7 @@ class Data(object):
         for i in self.images:
           roi_i = cv.cvtColor(i, cv.COLOR_BGR2RGB)
           mask = cv.inRange(roi_i, np.array([128, 63, 127]), np.array([129, 64, 128]))
-          self.new_images.append(mask)
+          self.new_images.append(np.expand_dims(mask,axis=2))
 
     def datawrite(self):
         save_path = self.path + '/semantic_gray/'
@@ -75,9 +75,9 @@ class Data(object):
 
         elif self.cur_index + self.batchsize >= len(self.images):
             index = self.cur_index - len(self.images)
-            return True,np.array(self.flip_images[index : index + self.batchsize]), np.array(self.flip_mask[index : index + self.batchsize])
+            return True,np.array(self.flip_images[index : index + self.batchsize]), np.array(self.flip_mask[index : index + self.batchsize])#.reshape((-1, 224, 244, 1))
 
-        return True,np.array(self.images[self.cur_index : self.cur_index + self.batchsize]),np.array(self.new_images[self.cur_index : self.cur_index + self.batchsize])
+        return True,np.array(self.images[self.cur_index : self.cur_index + self.batchsize]),np.array(self.new_images[self.cur_index : self.cur_index + self.batchsize])#.reshape((-1, 224, 244, 1))#.reshape((self.batchsize,-1))
 
 
     def run(self):
