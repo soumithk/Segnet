@@ -1,5 +1,5 @@
 # from keras import losses
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.layers import Input
 from keras.layers.core import Activation, Reshape
 from keras.layers.convolutional import Convolution2D
@@ -144,8 +144,14 @@ class Segnet(object):
     def train_generator(self, gen_train, steps_per_epoch, epochs, save_path, valid_gen = None, valid_steps = None,
                                     weights_path = None, initial_epoch = 0):
 
-        checkpoint = ModelCheckpoint(save_path + "weights.{epoch:02d}.hdf5", period = 1)
+        checkpoint = ModelCheckpoint(save_path, period = 1)
         self.model.fit_generator(gen_train, steps_per_epoch = steps_per_epoch, epochs = epochs,
                                         validation_data = valid_gen, validation_steps = valid_steps,
                                             initial_epoch = initial_epoch, callbacks = [checkpoint])
+
+    def test_generator(self, gen_test, steps, weights_path):
+
+        model = load_model(weights_path)
+        results = model.evaluate_generator(gen_test, steps)
+        print("RESULTS", results)
 
