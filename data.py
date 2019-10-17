@@ -64,7 +64,7 @@ class Data(object):
 
         for i in self.new_images:
             mas_hor = cv.flip(i,1)
-            self.flip_mask.append(mas_hor)
+            self.flip_mask.append(np.expand_dims(mas_hor, axis = 2))
 
 
     def next(self):
@@ -73,7 +73,7 @@ class Data(object):
         if self.cur_index + self.batchsize >= 2*len(self.images):
             return False, np.array([]), np.array([])
 
-        elif self.cur_index + self.batchsize >= len(self.images):
+        elif self.cur_index  >= len(self.images):
             index = self.cur_index - len(self.images)
             return True,np.array(self.flip_images[index : index + self.batchsize]), np.array(self.flip_mask[index : index + self.batchsize])#.reshape((-1, 224, 244, 1))
 
@@ -86,3 +86,4 @@ class Data(object):
         self.flip()
         # self.resize()
         # self.datawrite()
+
