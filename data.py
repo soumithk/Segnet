@@ -13,6 +13,7 @@ class Data(object):
         self.cur_index = -batchsize
         self.run()
 
+    # Reads the input data and labels
     def dataread(self):
         path = self.path + '/semantic_rgb'
         self.images = []
@@ -33,6 +34,9 @@ class Data(object):
             img1 = cv.resize(img,(224,224))
             self.train.append(img1)
 
+    # Labels given have to be modified for our training purpose
+    # Labels are cropped by removing all the image except where the roads are present
+    # The pixel values of raod must be converted to 1 and the remaining to 0
     def datamodify(self):
         self.new_images = []
 
@@ -62,7 +66,8 @@ class Data(object):
     #
     #         self.size_images.append(img)
 
-
+    # Data for training is too small
+    # Data can be augmented by flipping the image horizontally
     def flip(self):
         self.flip_images = []
         self.flip_mask = []
@@ -75,7 +80,7 @@ class Data(object):
             mas_hor = cv.flip(i,1)
             self.flip_mask.append(np.expand_dims(mas_hor, axis = 2))
 
-
+    # This funciton is will be automatucally called which will generate new batch of data at each step
     def next(self):
         self.cur_index += self.batchsize
 
@@ -88,7 +93,7 @@ class Data(object):
 
         return True,np.array(self.train[self.cur_index : self.cur_index + self.batchsize]),np.array(self.new_images[self.cur_index : self.cur_index + self.batchsize])#.reshape((-1, 224, 244, 1))#.reshape((self.batchsize,-1))
 
-
+    # attached all the funcitons of reading, modifying and data augmentation into a single function
     def run(self):
         self.dataread()
         self.datamodify()
