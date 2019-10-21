@@ -1,5 +1,6 @@
 from data import Data
 
+#Generate Data in batches for Segnet to train
 def data_generator(path, batchsize):
 
     while True:
@@ -10,6 +11,7 @@ def data_generator(path, batchsize):
             yield x, y
             ret, x, y = d.next()
 
+# Calculates No of Batches for Data
 def counter(path, batchsize):
 
     d = Data(path, batchsize)
