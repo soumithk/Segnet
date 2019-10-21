@@ -8,6 +8,8 @@ from keras.callbacks.callbacks import ModelCheckpoint
 
 from layers import MaxPoolingWithArgmax2D, MaxUnpooling2D
 
+import cv2
+import numpy as np
 
 
 ################################################
@@ -130,7 +132,6 @@ class Segnet(object):
 
     def build_model(self, optimizer, loss, metrics, print_summary = True):
 
-        # INCOMPLETE
         self.build_encoder()
         self.build_decoder()
 
@@ -151,8 +152,8 @@ class Segnet(object):
 
     def evaluate_generator(self, gen_test, steps, weights_path):
 
-        self.model.load_model(weights_path)
-        results = model.evaluate_generator(gen_test, steps)
+        self.model.load_weights(weights_path)
+        results = self.model.evaluate_generator(gen_test, steps)
         print("RESULTS", results)
 
     def test_image(self, weights_path, image_path, save_path):
@@ -160,10 +161,11 @@ class Segnet(object):
         img = cv2.imread(image_path)
         img = cv2.resize(img, (224, 224))
 
-        self.model.load_model(weights_path)
+        self.model.load_weights(weights_path)
 
-        mask = self.model.predict(np.expand_dims(x, axis = 0))[0]
-
+        mask = self.model.predict(np.expand_dims(img, axis = 0))[0]
+        # print(mask)
+        mask[mask >= 0.5] = 1
+        mask[mask < 0.5] = 0
         masked_img = mask * img
-        cv2.imwrite(save_path, masked_img)
-
+        cv2.imwrite(save_path,masked_img)

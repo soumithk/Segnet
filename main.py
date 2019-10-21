@@ -3,7 +3,7 @@ import cv2 as cv
 import numpy as np
 import data as dp
 from keras import losses
-from model2 import Segnet
+from model import Segnet
 from utils import data_generator, counter
 
 def main(path, input_size, n_classes=2, batch_size=16, epochs_count=30):
@@ -22,4 +22,3 @@ def main(path, input_size, n_classes=2, batch_size=16, epochs_count=30):
 
 if __name__ == '__main__':
     main('./data/cityscapes_data/', input_size=(224,224,3), epochs_count = 30)
-
