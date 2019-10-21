@@ -1,9 +1,10 @@
 # from keras import losses
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.layers import Input
 from keras.layers.core import Activation, Reshape
 from keras.layers.convolutional import Convolution2D
 from keras.layers.normalization import BatchNormalization
+from keras.callbacks.callbacks import ModelCheckpoint
 
 from layers import MaxPoolingWithArgmax2D, MaxUnpooling2D
 
@@ -98,52 +99,59 @@ class Segnet(object):
         conv_6 = Convolution2D(512, self.kernel, padding="same")(self.unpool_1)
         conv_6 = BatchNormalization()(conv_6)
         self.conv_6 = Activation("relu")(conv_6)
+
         conv_7 = Convolution2D(512, self.kernel, padding="same")(self.conv_6)
         conv_7 = BatchNormalization()(conv_7)
         self.conv_7 = Activation("relu")(conv_7)
 
-        self.unpool_2 = MaxUnpooling2D(self.pool_size)([self.conv_7,self.mask_3])
-
-        conv_8 = Convolution2D(256, self.kernel, padding="same")(self.unpool_2)
+        conv_8 = Convolution2D(256, self.kernel, padding="same")(self.conv_7)
         conv_8 = BatchNormalization()(conv_8)
         self.conv_8 = Activation("relu")(conv_8)
 
-        self.unpool_3 = MaxUnpooling2D(self.pool_size)([self.conv_8,self.mask_2])
+        self.unpool_2 = MaxUnpooling2D(self.pool_size)([self.conv_8,self.mask_3])
 
-        conv_9 = Convolution2D(128, self.kernel, padding="same")(self.unpool_3)
+        conv_9 = Convolution2D(128, self.kernel, padding="same")(self.unpool_2)
         conv_9 = BatchNormalization()(conv_9)
         self.conv_9 = Activation("relu")(conv_9)
 
-        self.unpool_4 = MaxUnpooling2D(self.pool_size)([self.conv_9,self.mask_1])
+        self.unpool_3 = MaxUnpooling2D(self.pool_size)([self.conv_9,self.mask_2])
 
-        conv_10 = Convolution2D(64, self.kernel, padding="same")(self.unpool_4)
+        conv_10 = Convolution2D(64, self.kernel, padding="same")(self.unpool_3)
         conv_10 = BatchNormalization()(conv_10)
         self.conv_10 = Activation("relu")(conv_10)
 
-        conv_11 = Convolution2D(self.n_classes - 1, self.kernel, padding="same")(self.conv_10)
+        self.unpool_4 = MaxUnpooling2D(self.pool_size)([self.conv_10,self.mask_1])
+
+        conv_11 = Convolution2D(self.n_classes - 1, self.kernel, padding="same")(self.unpool_4)
         self.conv_11 = BatchNormalization()(conv_11)
         # self.conv_11 = Reshape((-1, self.input_shape[0], self.input_shape[1],self.n_classes-1))(conv_11)
         self.outputs = Activation(self.output_mode)(self.conv_11)
         print("Done.")
 
-    def build_model(self, print_summary = True):
+    def build_model(self, optimizer, loss, metrics, print_summary = True):
 
         # INCOMPLETE
         self.build_encoder()
         self.build_decoder()
 
         self.model = Model(inputs = self.inputs, outputs = self.outputs, name = "SegNet")
+        self.model.compile(optimizer= optimizer,loss= loss, metrics = metrics)
 
         if print_summary :
             print(self.model.summary())
 
-    def compile(self,optimizer, loss, metrics):
-        self.model.compile(optimizer= optimizer,loss= loss, metrics = metrics)
 
-    def train_generator(self, gen_train, steps_per_epoch, epochs, valid_gen = None, valid_steps = None,
+    def train_generator(self, gen_train, steps_per_epoch, epochs, save_path, valid_gen = None, valid_steps = None,
                                     weights_path = None, initial_epoch = 0):
 
-        # TODO - add callbacks model checkpoint
+        checkpoint = ModelCheckpoint(save_path, period = 1)
         self.model.fit_generator(gen_train, steps_per_epoch = steps_per_epoch, epochs = epochs,
                                         validation_data = valid_gen, validation_steps = valid_steps,
-                                            initial_epoch = initial_epoch)
+                                            initial_epoch = initial_epoch, callbacks = [checkpoint])
+
+    def test_generator(self, gen_test, steps, weights_path):
+
+        model = load_model(weights_path)
+        results = model.evaluate_generator(gen_test, steps)
+        print("RESULTS", results)
+
